@@ -52,6 +52,23 @@ function buildPrompt(singerName, imageCount) {
 - 読み取りに自信がない場合でも、最も可能性が高い投稿文だけを返す。`;
 }
 
+function normalizeOpenAIError(message) {
+  if (!message) {
+    return "AI生成に失敗しました。";
+  }
+
+  const lowerMessage = message.toLowerCase();
+  if (lowerMessage.includes("quota") || lowerMessage.includes("billing")) {
+    return "OpenAI APIの利用枠が不足しています。OpenAI Platformで支払い設定またはクレジット残高を確認してください。";
+  }
+
+  if (lowerMessage.includes("api key")) {
+    return "OpenAI APIキーを確認してください。Vercelの環境変数 OPENAI_API_KEY が正しく設定されている必要があります。";
+  }
+
+  return message;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return sendJson(res, 405, { error: "POSTで送信してください。" });
@@ -125,7 +142,7 @@ module.exports = async function handler(req, res) {
 
     if (!apiResponse.ok) {
       return sendJson(res, apiResponse.status, {
-        error: data.error?.message || "AI生成に失敗しました。",
+        error: normalizeOpenAIError(data.error?.message),
       });
     }
 
