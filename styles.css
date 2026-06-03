@@ -2,15 +2,15 @@
   color-scheme: light;
   --bg: #ffffff;
   --surface: #ffffff;
-  --text: #17212b;
+  --text: #14313d;
   --muted: #6d7784;
   --subtle: #f5f7f8;
-  --border: #dfe6e8;
-  --accent: #109c92;
-  --accent-dark: #087a73;
-  --accent-soft: #e8f7f5;
+  --border: #cfe9f2;
+  --accent: #2aaed8;
+  --accent-dark: #1598c3;
+  --accent-soft: #eaf8fc;
   --danger: #c84747;
-  --shadow: 0 16px 40px rgba(23, 33, 43, 0.08);
+  --shadow: 0 16px 40px rgba(20, 49, 61, 0.08);
 }
 
 * {
