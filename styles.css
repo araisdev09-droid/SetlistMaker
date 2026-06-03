@@ -125,6 +125,55 @@ main {
   box-shadow: var(--shadow);
 }
 
+.guide-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.guide-panel summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 760;
+  list-style: none;
+  cursor: pointer;
+}
+
+.guide-panel summary::-webkit-details-marker {
+  display: none;
+}
+
+.guide-panel summary svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 160ms ease;
+}
+
+.guide-panel[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.guide-panel ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0 14px 14px 32px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
 .input-panel {
   display: grid;
   gap: 18px;
