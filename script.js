@@ -6,19 +6,14 @@ const copyButton = document.querySelector("#copyButton");
 const previewText = document.querySelector("#previewText");
 const statusText = document.querySelector("#statusText");
 const singerName = document.querySelector("#singerName");
+const passcode = document.querySelector("#passcode");
 
 const selectedFiles = [];
 
-const sampleSetlist = `[1部]
-カメリア・コンプレックス / luz
-初恋日記 / 香椎モイミ
-バッド・ダンス・ホール / カラスヤサボウ　海凪 澪 × 氷見
-君色に染まる / TOKOTOKO(西沢さんP)　海凪 澪 × あーるくん。× 氷見 × あだち酔
-
-[2部]
-ネクロの花嫁 / 奏音69
-ロビンソン / スピッツ
-115万キロのフィルム / Official髭男dism`;
+function setLoading(isLoading) {
+  generateButton.disabled = isLoading;
+  generateButton.textContent = isLoading ? "生成中..." : "生成する";
+}
 
 function renderFileList() {
   fileList.replaceChildren();
@@ -67,10 +62,45 @@ function addFiles(files) {
   }
 }
 
-function generatePreview() {
+function readImageAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const reader = new FileReader();
+
+    reader.addEventListener("load", () => {
+      image.src = reader.result;
+    });
+    reader.addEventListener("error", reject);
+
+    image.addEventListener("load", () => {
+      const maxSize = 1600;
+      const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+      const width = Math.round(image.width * scale);
+      const height = Math.round(image.height * scale);
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      canvas.width = width;
+      canvas.height = height;
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    });
+    image.addEventListener("error", reject);
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function generatePreview() {
   if (!singerName.value.trim()) {
     statusText.textContent = "歌い手名を入力してください";
     singerName.focus();
+    return;
+  }
+
+  if (!passcode.value.trim()) {
+    statusText.textContent = "パスコードを入力してください";
+    passcode.focus();
     return;
   }
 
@@ -80,9 +110,45 @@ function generatePreview() {
     return;
   }
 
-  previewText.value = sampleSetlist;
-  statusText.textContent = "生成しました";
-  previewText.focus();
+  setLoading(true);
+  statusText.textContent = "画像を準備しています";
+
+  try {
+    const images = await Promise.all(
+      selectedFiles.map(async (file) => ({
+        name: file.name,
+        dataUrl: await readImageAsDataUrl(file),
+      })),
+    );
+
+    statusText.textContent = "AIで読み取っています";
+
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        singerName: singerName.value.trim(),
+        passcode: passcode.value,
+        images,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "生成に失敗しました");
+    }
+
+    previewText.value = data.text;
+    statusText.textContent = "生成しました";
+    previewText.focus();
+  } catch (error) {
+    statusText.textContent = error instanceof Error ? error.message : "生成に失敗しました";
+  } finally {
+    setLoading(false);
+  }
 }
 
 async function copyPreview() {
